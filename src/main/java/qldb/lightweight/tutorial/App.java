@@ -3,12 +3,38 @@
  */
 package qldb.lightweight.tutorial;
 
-public class App {
-    public String getGreeting() {
-        return "Hello world.";
-    }
+import com.amazonaws.services.qldb.AmazonQLDB;
+import com.amazonaws.services.qldb.AmazonQLDBClientBuilder;
+import com.amazonaws.services.qldb.model.CreateLedgerRequest;
+import com.amazonaws.services.qldb.model.DescribeLedgerRequest;
+import com.amazonaws.services.qldb.model.LedgerState;
+import com.amazonaws.services.qldb.model.PermissionsMode;
 
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
-    }
+import software.amazon.qldb.PooledQldbDriver;
+
+public class App {
+	String ledgerName = "hello-qldb";
+
+	public static void main(String[] args) throws Exception {
+		new App().run();
+	}
+
+	void run() throws Exception {
+		createLedger();
+		
+		PooledQldbDriver ledger = PooledQldbDriver.builder().withLedger(ledgerName).build();
+	}
+
+	void createLedger() throws Exception {
+		AmazonQLDB qldb = AmazonQLDBClientBuilder.standard().build();
+		qldb.createLedger(
+				new CreateLedgerRequest().withName(ledgerName).withPermissionsMode(PermissionsMode.ALLOW_ALL));
+
+		while (true) {
+			if (LedgerState.ACTIVE.name()
+					.equals(qldb.describeLedger(new DescribeLedgerRequest().withName(ledgerName)).getState()))
+				return;
+			Thread.sleep(1000);
+		}
+	}
 }
