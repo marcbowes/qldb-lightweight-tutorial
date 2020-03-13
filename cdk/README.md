@@ -1,10 +1,10 @@
-# Welcome to your CDK Java project!
+# Welcome to a minimal QLDB CDK project
 
 This is a blank project for Java development with CDK.
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
-It is a [Maven](https://maven.apache.org/) based project, so you can open this project with any Maven compatible Java IDE to build and run tests.
+It is a Gradle based project, so you can open this project with any Gradle Java IDE to build and run tests.
 
 ## Useful commands
 

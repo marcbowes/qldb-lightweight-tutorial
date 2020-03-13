@@ -24,11 +24,13 @@ repositories {
 }
 
 application {
-    mainClassName = 'com.myorg.HelloCdkApp'
+    mainClassName = 'com.myorg.CdkApp'
 }
 
 dependencies {
     implementation 'software.amazon.awscdk:core:1.27.0'
+    implementation 'software.amazon.awscdk:qldb:1.27.0'
+    implementation 'software.amazon.awscdk:kinesis:1.27.0'
 
     // Use JUnit Jupiter API for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'

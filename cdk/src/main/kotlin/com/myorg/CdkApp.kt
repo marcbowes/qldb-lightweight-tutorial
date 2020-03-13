@@ -6,7 +6,7 @@ object CdkApp {
     @JvmStatic
     fun main(args: Array<String>) {
         val app = App()
-        CdkStack(app, "CdkStack")
+        CdkStack(app, "QldbTutorial")
         app.synth()
     }
 }
