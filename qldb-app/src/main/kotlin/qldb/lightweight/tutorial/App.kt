@@ -5,10 +5,15 @@ package qldb.lightweight.tutorial
 
 import com.amazon.ion.IonString
 import com.amazon.ion.IonStruct
-import com.amazon.ion.IonValue
 import com.amazon.ion.system.IonSystemBuilder
 import com.amazonaws.services.qldbsession.AmazonQLDBSessionClientBuilder
 import com.amazonaws.services.qldbsession.model.BadRequestException
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.kinesis.KinesisClient
+import software.amazon.awssdk.services.kinesis.model.GetRecordsRequest
+import software.amazon.awssdk.services.kinesis.model.GetShardIteratorRequest
+import software.amazon.awssdk.services.kinesis.model.ListShardsRequest
+import software.amazon.awssdk.services.kinesis.model.ShardIteratorType
 import software.amazon.qldb.PooledQldbDriver
 
 val ion = IonSystemBuilder.standard().build()
@@ -17,6 +22,11 @@ class App {
     var ledgerName = "sample-ledger"
 
     fun run() {
+        qldb()
+        stream()
+    }
+
+    fun qldb() {
         val ledger = PooledQldbDriver.builder()
             .withLedger(ledgerName)
             .withSessionClientBuilder(AmazonQLDBSessionClientBuilder.standard().configure())
@@ -65,6 +75,42 @@ Make sure you've already setup the necessary resources by following the README i
                 }
             }
             println()
+        }
+    }
+
+    fun stream() {
+        val kinesis = KinesisClient.builder()
+            .region(Region.US_WEST_2)
+            .build()
+
+        val shard = kinesis.listShards(ListShardsRequest.builder()
+            .streamName("sample-ledger-stream")
+            .build()).shards().single()
+
+        var iter = kinesis.getShardIterator(GetShardIteratorRequest.builder()
+            .streamName("sample-ledger-stream")
+            .shardId(shard.shardId())
+            .shardIteratorType(ShardIteratorType.TRIM_HORIZON)
+            .build()).shardIterator()
+
+        while (true) {
+            val response = kinesis.getRecords(GetRecordsRequest.builder()
+                .shardIterator(iter)
+                .build())
+
+            iter = response.nextShardIterator()
+
+            response.records().forEach {
+                val record = ion.singleValue(it.data().asByteArray()) as IonStruct
+                val payload = record.get("payload") as IonStruct
+                when ((record.get("recordType") as IonString).stringValue()) {
+                    "CONTROL" -> println(payload.toPrettyString())
+                    "BLOCK_SUMMARY" -> println(payload.get("transactionInfo").toPrettyString())
+                    "REVISION_DETAILS" -> println((payload.get("revision") as IonStruct).get("data").toPrettyString())
+                }
+            }
+
+            if (response.records().isEmpty()) break
         }
     }
 

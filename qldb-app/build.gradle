@@ -28,6 +28,8 @@ dependencies {
     implementation 'software.amazon.qldb:amazon-qldb-driver-java:1.0.2'
     implementation 'com.amazonaws:aws-java-sdk-qldb:1.11.628'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-ion:2.10.0.pr1'
+    implementation platform('software.amazon.awssdk:bom:2.5.29')
+    implementation 'software.amazon.awssdk:kinesis'
 
     // Use JUnit Jupiter API for testing.
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
